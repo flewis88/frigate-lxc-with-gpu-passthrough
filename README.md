@@ -1,7 +1,7 @@
 # frigate-lxc-with-gpu-passthrough
 Frigate docker container running in an LXC with GPU passthrough, to share with Ollama
 
-1. Create Debian 13 LXC
+1. Create Debian 13 LXC in Proxmox
 2. Set bash as default shell
    ```
    sudo chsh -s /usr/bin/bash $(whoami) # or sudo chsh -s /bin/bash $(whoami)
