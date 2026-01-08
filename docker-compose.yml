@@ -1,0 +1,36 @@
+services:
+  frigate:
+    container_name: frigate
+    restart: unless-stopped
+    stop_grace_period: 30s
+    image: ghcr.io/blakeblackshear/frigate:stable-tensorrt
+    shm_size: "256mb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./config:/config
+      - /mnt/truenas-nvr-storage:/media/frigate
+      - type: tmpfs # Optional: 1GB of memory, reduces SSD/SD Card wear
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    ports:
+      - "8971:8971"
+      - "8554:8554" # RTSP feeds
+      - "5000:5000"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+    environment:
+      - TZ=Australia/Sydney
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
