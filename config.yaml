@@ -1,0 +1,95 @@
+mqtt:
+  enabled: true
+  host: *mqtt broker IP*
+  user: *broker user*
+  password: *broker password*
+
+detectors:
+  onnx:
+    type: onnx
+    device: cuda
+    num_threads: 2
+
+ffmpeg:
+  hwaccel_args: preset-nvidia-h264
+
+model:
+  model_type: yolo-generic
+  width: 320
+  height: 320
+  input_tensor: nchw
+  input_dtype: float
+  labelmap_path: /labelmap/coco-80.txt
+  path: /config/model_cache/yolov9-t-320.onnx
+
+go2rtc:
+  streams:
+    office:
+      - rtsp://*user*:*pass*@*camera IP*:554/stream1 # Port & Stream name for TP-Link Tapo Camera
+    office_sub:
+      - rtsp://*user*:*pass*@*camera IP*:554/stream1 # Port & Stream name for TP-Link Tapo Camera
+      
+cameras:
+  office: # <------ Name the camera
+    enabled: true
+    
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/office # Localhost, RTSP port & camera name for restreaming
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/office_sub # Localhost, RTSP port & camera name for restreaming
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+      output_args:
+        record: preset-record-generic-audio-aac
+    
+    onvif:
+      host: *Camera IP*
+      port: 2020 # ONVIF port on camera. 2020 for TP-Link Tapo cameras
+      user: *camera user*
+      password: *cmaera pass*
+
+    detect:
+      enabled: true
+      width: 1280
+      height: 720
+      fps: 5
+    
+    # Add this section to save person snapshots and events
+    snapshots:
+      enabled: true
+      timestamp: false
+      bounding_box: true
+      crop: false
+      retain:
+        default: 7  # Keep snapshots for 7 days
+    
+    # Configure what objects to track and save
+    objects:
+      track:
+        - person
+        - cat 
+        - dog
+        - bicycle
+        - car
+        - motorcycle
+      filters:
+        person:
+          min_area: 1000
+          threshold: 0.7
+          min_score: 0.5
+    
+    # Optional: Record clips when person is detected
+    record:
+      enabled: true
+      retain:
+        days: 3
+        mode: motion
+
+
+version: 0.16-0
+detect:
+  enabled: true
